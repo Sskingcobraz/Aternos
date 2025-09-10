@@ -3,19 +3,21 @@ require('dotenv').config();
 const mineflayer = require('mineflayer');
 const express = require('express');
 
+// ----------------- CONFIG -----------------
 const MC_HOST = process.env.MC_HOST || 'RunderSmpS2.aternos.me';
-const MC_PORT = parseInt(process.env.MC_PORT || '50337', 10);
+const MC_PORT = Number(process.env.MC_PORT) || 50337;
 const MC_USERNAME = process.env.MC_USERNAME || 'AFKBot';
 const MC_PASSWORD = process.env.MC_PASSWORD || '';
-const MC_VERSION = process.env.MC_VERSION || false; // 'auto' or specific version, or false
+const MC_VERSION = process.env.MC_VERSION || false; // 'auto' or specific version
 
-const WEB_PORT = parseInt(process.env.PORT || '3000', 10);
-const AFK_INTERVAL = parseInt(process.env.AFK_INTERVAL || '60000', 10); // ms
-const RECONNECT_TIMEOUT = parseInt(process.env.RECONNECT_TIMEOUT || '5000', 10); // ms
+const AFK_INTERVAL = Number(process.env.AFK_INTERVAL) || 60000; // ms
+const RECONNECT_TIMEOUT = Number(process.env.RECONNECT_TIMEOUT) || 5000; // ms
+const WEB_PORT = Number(process.env.PORT) || 3000; // Render provides PORT env variable
 
 let bot = null;
 let afkIntervalId = null;
 
+// ----------------- BOT FUNCTION -----------------
 function startBot() {
   console.log(`Starting bot -> host=${MC_HOST} port=${MC_PORT} username=${MC_USERNAME}`);
 
@@ -32,7 +34,6 @@ function startBot() {
   bot.once('spawn', () => {
     console.log('✅ Bot spawned and connected to server.');
 
-    // Clear any previous intervals
     if (afkIntervalId) clearInterval(afkIntervalId);
 
     // Anti-AFK: periodic jump
@@ -66,7 +67,7 @@ function startBot() {
   });
 
   bot.on('message', (msg) => {
-    // Silent by default, can add chat reactions here
+    // Silent by default; can add chat reactions here
   });
 
   process.on('SIGINT', () => {
@@ -77,10 +78,10 @@ function startBot() {
   });
 }
 
-// Start bot
+// ----------------- START BOT -----------------
 startBot();
 
-// Express server for keepalive / health checks
+// ----------------- EXPRESS WEB SERVER -----------------
 const app = express();
 
 app.get('/', (req, res) => {
@@ -91,8 +92,6 @@ app.get('/health', (req, res) => {
   const alive = !!(bot && bot.entity && bot.entity.position);
   res.json({ alive, username: bot ? (bot.username || bot.user?.username) : null });
 });
-
-const WEB_PORT = Number(process.env.PORT) || 3000;
 
 app.listen(WEB_PORT, () => {
   console.log(`🌍 Web status server listening on port ${WEB_PORT}`);
