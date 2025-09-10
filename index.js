@@ -92,6 +92,8 @@ app.get('/health', (req, res) => {
   res.json({ alive, username: bot ? (bot.username || bot.user?.username) : null });
 });
 
+const WEB_PORT = Number(process.env.PORT) || 3000;
+
 app.listen(WEB_PORT, () => {
   console.log(`🌍 Web status server listening on port ${WEB_PORT}`);
 });
