@@ -7,12 +7,12 @@ const express = require('express');
 const MC_HOST = process.env.MC_HOST || 'RunderSmpS2.aternos.me';
 const MC_PORT = Number(process.env.MC_PORT) || 50337;
 const MC_USERNAME = process.env.MC_USERNAME || 'AFKBot';
-const MC_PASSWORD = process.env.MC_PASSWORD || '';
+const MC_PASSWORD = process.env.MC_PASSWORD || ''; // Leave blank if AuthMe is handling login
 const MC_VERSION = process.env.MC_VERSION || false; // 'auto' or specific version
 
 const AFK_INTERVAL = Number(process.env.AFK_INTERVAL) || 60000; // ms
 const RECONNECT_TIMEOUT = Number(process.env.RECONNECT_TIMEOUT) || 5000; // ms
-const WEB_PORT = Number(process.env.PORT) || 3000; // Render provides PORT env variable
+const WEB_PORT = Number(process.env.PORT) || 3000; // Render provides PORT
 
 let bot = null;
 let afkIntervalId = null;
@@ -34,15 +34,20 @@ function startBot() {
   bot.once('spawn', () => {
     console.log('✅ Bot spawned and connected to server.');
 
+    // ----------------- LOGIN FOR AUTHME -----------------
+    setTimeout(() => {
+      // Replace 'ADKBOT' with your actual password
+      bot.chat('/login ADKBOT');
+      console.log('Sent /login command for AuthMe.');
+    }, 1000); // 1 second delay to ensure server is ready
+
+    // ----------------- ANTI-AFK -----------------
     if (afkIntervalId) clearInterval(afkIntervalId);
 
-    // Anti-AFK: periodic jump
     afkIntervalId = setInterval(() => {
       try {
         bot.setControlState('jump', true);
-        setTimeout(() => {
-          try { bot.setControlState('jump', false); } catch (e) {}
-        }, 200);
+        setTimeout(() => bot.setControlState('jump', false), 200);
       } catch (err) {
         console.warn('AFK jump error:', err.message || err);
       }
@@ -67,7 +72,7 @@ function startBot() {
   });
 
   bot.on('message', (msg) => {
-    // Silent by default; can add chat reactions here
+    // Optional: handle chat messages here
   });
 
   process.on('SIGINT', () => {
